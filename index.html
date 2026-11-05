@@ -19,8 +19,9 @@
       <span><strong>PIXAR CHARACTERS WIKI</strong><small></small></span>
     </a>
     <div class="top-actions">
+      <a class="about-button active-link" id="homeLink" href="index.html">Home</a>
+      <a class="about-button" id="orthosLink" href="orthos.html">Orthos</a>
       <label class="language-picker" for="languageSelect"><span>🌐</span><select id="languageSelect" aria-label="Language"><option value="en">🇺🇸 English</option><option value="pt-BR">🇧🇷 Português</option><option value="es">🇪🇸 Español</option><option value="fr">🇫🇷 Français</option><option value="de">🇩🇪 Deutsch</option><option value="it">🇮🇹 Italiano</option><option value="ja">🇯🇵 日本語</option></select></label>
-      <button class="about-button" id="aboutButton">Sobre os dados</button>
     </div>
   </header>
 
@@ -104,7 +105,7 @@
     <p>Os nomes, resumos, imagens e categorias são obtidos da API MediaWiki da Pixar Cars Wiki. Cada ficha mantém um link para a página original.</p>
     <p>Este projeto não é afiliado à Disney, Pixar ou Fandom. O conteúdo comunitário da wiki é disponibilizado sob CC BY-SA; imagens podem ter licenças próprias.</p>
     <h3>Atualização</h3>
-    <p>No Windows, execute <code>atualizar-dados.ps1</code> dentro da pasta do site. Ele recria <code>characters.json</code> consultando a API e preserva a organização por categorias.</p>
+    <p>O catálogo consulta automaticamente a API da wiki uma vez por dia e mantém uma cópia no navegador para abrir rápido.</p>
   </dialog>
 
   <dialog id="photoViewer" class="photo-viewer" aria-label="Visualizador de fotos">
@@ -121,7 +122,7 @@
 
   <footer>
     <span>Projeto local não oficial</span>
-    <span><a href="sitemap.xml" target="_blank">Sitemap XML local</a> · <a href="https://pixarcars.fandom.com/wiki/Category:Characters" target="_blank" rel="noreferrer">Abrir Pixar Cars Wiki ↗</a></span>
+    <span><button class="footer-about" id="aboutButton">Sobre os dados</button> · <a href="https://pixarcars.fandom.com/wiki/Category:Characters" target="_blank" rel="noreferrer">Abrir Pixar Cars Wiki ↗</a></span>
   </footer>
   <script>
     const loadCurrent=(file)=>new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=`${file}?v=${window.siteVersion}`;script.onload=resolve;script.onerror=reject;document.body.append(script)});

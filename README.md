@@ -1,4 +1,4 @@
-# Cars Character Vault
+# Pixar Characters Wiki
 
 Catálogo HTML local de personagens, alimentado pela API MediaWiki da Pixar Cars Wiki.
 
@@ -8,20 +8,9 @@ Você pode dar dois cliques diretamente em `index.html`. A base também é gerad
 
 Como alternativa, `abrir-site.bat` abre o catálogo em `http://localhost:8765`.
 
-## Atualizar os dados
+## Atualização automática
 
-Clique com o botão direito em `atualizar-dados.ps1`, escolha **Executar com PowerShell** e aguarde. O script:
-
-- consulta categorias reais da wiki;
-- segue a paginação da API;
-- remove duplicatas;
-- obtém resumo, imagem e categorias de cada página;
-- grava uma nova versão de `characters.json`.
-- gera `sitemap.xml` com o índice de todas as fichas importadas.
-
-O sitemap público padrão do domínio Fandom respondeu com bloqueio HTTP 403 durante a criação deste projeto. Por isso, o atualizador usa o índice de categorias da API MediaWiki como fonte de descoberta e gera um sitemap XML local verificável a partir das páginas realmente importadas.
-
-Para mudar o escopo, edite a lista `$sourceCategories` no começo do script.
+O catálogo consulta a API MediaWiki da Pixar Cars Wiki automaticamente uma vez por dia. A cópia mais recente fica salva no navegador para abrir rápido, inclusive quando a wiki estiver temporariamente indisponível. Não é necessário atualizar arquivos no GitHub para renovar a lista de personagens.
 
 ## Limites e licença
 

@@ -6,7 +6,7 @@ $sourceCategories = @(
   'Cars Toons characters','Planes characters','Planes: Fire & Rescue characters',
   'Game-only characters','Book-only characters','Comic characters','Playable characters',
   'Racers','Tuners','Heroes','Villains','Race Fans','Forklifts and pitties',
-  'Tow trucks','Haulers','Planes','Trucks','Next-Gen'
+  'Tow trucks','Haulers','Planes','Trucks','Trains','Next-Gen'
 )
 
 function Invoke-Wiki([hashtable]$Params) {

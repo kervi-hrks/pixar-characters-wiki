@@ -1,17 +1,43 @@
 const API = 'https://dpcarswiki.com/api.php';
 const CORS = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, OPTIONS',
-  'content-type': 'application/json; charset=utf-8',
-  'cache-control': 'public, max-age=3600'
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Max-Age': '86400',
+  'Vary': 'Origin'
 };
+
+function response(body, init = {}) {
+  const headers = new Headers(init.headers);
+  Object.entries(CORS).forEach(([key, value]) => headers.set(key, value));
+  if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json; charset=utf-8');
+  return new Response(body, { ...init, headers });
+}
+
+function withCors(original) {
+  return response(original.body, {
+    status: original.status,
+    statusText: original.statusText,
+    headers: original.headers
+  });
+}
 
 async function api(params) {
   const url = new URL(API);
   Object.entries({ format: 'json', origin: '*', ...params }).forEach(([key, value]) => url.searchParams.set(key, value));
-  const response = await fetch(url);
+  let response;
+  try {
+    response = await Promise.race([
+      fetch(url),
+      new Promise((resolve, reject) => setTimeout(() => reject(new Error(`A DPCarsWiki não respondeu em 25 segundos (${params.action || 'consulta'}).`)), 25000))
+    ]);
+  } catch (error) {
+    throw error;
+  }
   if (!response.ok) throw new Error(`DPCarsWiki respondeu ${response.status}`);
-  return response.json();
+  const data = await response.json();
+  if (data.error) throw new Error(`DPCarsWiki API: ${data.error.info || data.error.code || 'erro desconhecido'}`);
+  return data;
 }
 
 function orthosFromText(text = '') {
@@ -81,10 +107,17 @@ async function orthos(title) {
   return { title: page?.title || title, url: `https://dpcarswiki.com/wiki/${encodeURIComponent((page?.title || title).replaceAll(' ', '_'))}`, images };
 }
 
-async function media() {
-  const result = await api({ action: 'query', list: 'categorymembers', cmtitle: 'Category:Orthographic views', cmtype: 'file', cmlimit: 'max' });
+async function media(continuation = null, limit = 50) {
+  const result = await api({
+    action: 'query',
+    list: 'categorymembers',
+    cmtitle: 'Category:Orthographic views',
+    cmtype: 'file',
+    cmlimit: String(Math.min(Math.max(Number(limit) || 50, 1), 100)),
+    ...(continuation ? { cmcontinue: continuation } : {})
+  });
   const files = (result.query?.categorymembers || []).map(item => String(item.title || '').replace(/^File:/i, ''));
-  return files.map(title => ({ title }));
+  return { media: files.map(title => ({ title })), continuation: result.continue?.cmcontinue || null };
 }
 
 async function previews(files) {
@@ -96,23 +129,33 @@ async function previews(files) {
 }
 
 export default {
-  async fetch(request) {
-    if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+  async fetch(request, env, ctx) {
+    if (request.method === 'OPTIONS') return response(null, { status: 204 });
     try {
       const url = new URL(request.url);
       const action = url.searchParams.get('action');
+      if (action === 'media') {
+        const cacheKey = new Request(url.toString());
+        const cached = await caches.default.match(cacheKey);
+        if (cached) return withCors(cached);
+        const payload = await media(url.searchParams.get('continue'), url.searchParams.get('limit'));
+        const cachedResponse = response(JSON.stringify(payload), { headers: { 'Cache-Control': 'public, max-age=21600' } });
+        ctx.waitUntil(caches.default.put(cacheKey, cachedResponse.clone()));
+        return cachedResponse;
+      }
       if (action === 'image') {
         const remote = new URL(url.searchParams.get('url') || '');
         if (remote.hostname !== 'dpcarswiki.com' || !remote.pathname.startsWith('/images/')) throw new Error('Imagem inválida.');
         const image = await fetch(remote.toString(), { headers: { referer: 'https://dpcarswiki.com/' } });
         if (!image.ok) throw new Error(`Imagem respondeu ${image.status}`);
-        return new Response(image.body, { headers: { ...CORS, 'content-type': image.headers.get('content-type') || 'image/jpeg', 'cache-control': 'public, max-age=86400' } });
+        return response(image.body, { headers: { 'Content-Type': image.headers.get('content-type') || 'image/jpeg', 'Cache-Control': 'public, max-age=86400' } });
       }
       const files = (url.searchParams.get('files') || '').split('|').filter(Boolean).slice(0,50);
-      const body = action === 'media' ? { media: await media() } : action === 'previews' && files.length ? { previews: await previews(files) } : action === 'characters' ? { characters: await characters() } : action === 'orthos' && url.searchParams.get('title') ? await orthos(url.searchParams.get('title')) : { service: 'Pixar Orthos API', endpoints: ['?action=media', '?action=previews&files=Example.png', '?action=characters', '?action=orthos&title=Doc%20Hudson'] };
-      return new Response(JSON.stringify(body), { headers: CORS });
+      const body = action === 'previews' && files.length ? { previews: await previews(files) } : action === 'characters' ? { characters: await characters() } : action === 'orthos' && url.searchParams.get('title') ? await orthos(url.searchParams.get('title')) : { service: 'Pixar Orthos API', endpoints: ['?action=media', '?action=previews&files=Example.png', '?action=characters', '?action=orthos&title=Doc%20Hudson'] };
+      return response(JSON.stringify(body), { headers: { 'Cache-Control': 'public, max-age=3600' } });
     } catch (error) {
-      return new Response(JSON.stringify({ error: 'Não foi possível consultar a DPCarsWiki.', detail: error.message }), { status: 502, headers: CORS });
+      console.error('Pixar Orthos API failure:', error?.stack || error?.message || String(error));
+      return response(JSON.stringify({ error: 'Não foi possível consultar a DPCarsWiki.', detail: error.message }), { status: 502 });
     }
   }
 };

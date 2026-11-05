@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#b91c1c">
+  <title>Cars Character Vault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Voltar ao catálogo">
+      <span class="brand-mark">95</span>
+      <span><strong>CARS</strong><small>CHARACTER VAULT</small></span>
+    </a>
+    <div class="top-actions">
+      <label class="language-picker" for="languageSelect"><span>🌐</span><select id="languageSelect" aria-label="Idioma"><option value="pt-BR">🇧🇷 Português</option><option value="en">🇺🇸 English</option><option value="es">🇪🇸 Español</option><option value="fr">🇫🇷 Français</option><option value="de">🇩🇪 Deutsch</option><option value="it">🇮🇹 Italiano</option><option value="ja">🇯🇵 日本語</option></select></label>
+      <button class="about-button" id="aboutButton">Sobre os dados</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow" id="heroEyebrow">Arquivo local da Pixar Cars Wiki</p>
+        <h1 id="heroTitle">Todos os corredores.<br><em>Uma só garagem.</em></h1>
+        <p id="heroDescription">Pesquise personagens, filtre por filme, função ou tipo e abra a ficha completa sem perder o caminho da fonte original.</p>
+      </div>
+      <div class="search-wrap">
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="searchInput" type="search" placeholder="Buscar por nome, categoria ou informação…" autocomplete="off">
+          <kbd>/</kbd>
+        </label>
+        <div class="quick-stats">
+          <span><strong id="totalCount">0</strong> <i id="charactersLabel">personagens</i></span>
+          <span><strong id="categoryCount">0</strong> <i id="categoriesLabel">categorias</i></span>
+          <span id="updateDate">Base local</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog" aria-label="Catálogo de personagens">
+      <aside class="filters">
+        <div class="filter-heading">
+          <h2 id="categoriesTitle">Categorias</h2>
+          <button id="clearFilters">Limpar</button>
+          <button id="mobileFilterClose" aria-label="Fechar filtros">×</button>
+        </div>
+        <label class="category-search"><span>⌕</span><input id="categorySearch" type="search" placeholder="Filtrar categorias…" autocomplete="off"></label>
+        <section id="appliedSection" class="applied-section" hidden>
+          <div><strong id="appliedTitle">Aplicados</strong><span id="appliedCount">0</span></div>
+          <div id="appliedFilters" class="applied-list"></div>
+        </section>
+        <div id="categoryFilters" class="filter-list"></div>
+      </aside>
+
+      <div class="results">
+        <div class="results-bar">
+          <p><strong id="visibleCount">0</strong> <span id="resultsLabel">resultados</span></p>
+          <button id="mobileFilterToggle" class="mobile-filter-toggle">☰ Filtros</button>
+          <label><span id="sortLabel">Ordenar</span>
+            <select id="sortSelect">
+              <option value="az">A–Z</option><option value="za">Z–A</option><option value="popular">Destaques primeiro</option>
+            </select>
+          </label>
+        </div>
+        <div class="view-toolbar" aria-label="Opções de visualização">
+          <div class="view-modes" role="group" aria-label="Modo de visualização">
+            <button class="view-button active" data-view="grid" title="Grade" aria-label="Grade">▦</button>
+            <button class="view-button" data-view="list" title="Lista" aria-label="Lista">☷</button>
+            <button class="view-button" data-view="compact" title="Compacto" aria-label="Compacto">▦</button>
+          </div>
+          <label class="column-control"><span>Colunas</span><input id="columnRange" type="range" min="2" max="8" value="4"><output id="columnOutput">4</output></label>
+          <label class="image-fit-control"><span>Imagem</span><select id="imageFitSelect"><option value="contain">Inteira</option><option value="cover">Preencher</option></select></label>
+          <label class="page-size-control"><span id="perPageLabel">Por página</span><select id="pageSizeSelect" aria-label="Personagens por página"><option value="12">12</option><option value="24" selected>24</option><option value="48">48</option><option value="96">96</option></select></label>
+          <label class="pagination-mode-control"><span id="paginationModeLabel">Navegação</span><select id="paginationModeSelect" aria-label="Modo de navegação"><option value="pages">Páginas</option><option value="more">Mostrar mais</option></select></label>
+          <button id="resetView" class="reset-view" title="Restaurar visual">↺ Restaurar</button>
+        </div>
+        <div id="activeFilters" class="active-filters"></div>
+        <div id="characterGrid" class="character-grid"></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <span>🏁</span><h3>Nenhum personagem encontrado</h3><p>Tente outro nome ou remova alguns filtros.</p>
+        </div>
+        <nav id="pagination" class="pagination" aria-label="Paginação" hidden></nav><button id="loadMore" hidden aria-hidden="true"></button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="detailDialog" class="detail-dialog">
+    <button class="dialog-close" id="detailClose" aria-label="Fechar">×</button>
+    <div id="detailContent"></div>
+  </dialog>
+
+  <dialog id="aboutDialog" class="about-dialog">
+    <button class="dialog-close" id="aboutClose" aria-label="Fechar">×</button>
+    <p class="eyebrow">Sobre esta base</p>
+    <h2>Um catálogo local, ligado à fonte.</h2>
+    <p>Os nomes, resumos, imagens e categorias são obtidos da API MediaWiki da Pixar Cars Wiki. Cada ficha mantém um link para a página original.</p>
+    <p>Este projeto não é afiliado à Disney, Pixar ou Fandom. O conteúdo comunitário da wiki é disponibilizado sob CC BY-SA; imagens podem ter licenças próprias.</p>
+    <h3>Atualização</h3>
+    <p>No Windows, execute <code>atualizar-dados.ps1</code> dentro da pasta do site. Ele recria <code>characters.json</code> consultando a API e preserva a organização por categorias.</p>
+  </dialog>
+
+  <dialog id="photoViewer" class="photo-viewer" aria-label="Visualizador de fotos">
+    <button class="viewer-close" id="viewerClose" aria-label="Fechar visualizador">×</button>
+    <button class="viewer-arrow viewer-prev" id="viewerPrev" aria-label="Foto anterior">‹</button>
+    <figure class="viewer-stage">
+      <div class="viewer-spinner" id="viewerSpinner"></div>
+      <img id="viewerImage" alt="">
+      <figcaption><strong id="viewerCaption"></strong><span id="viewerCounter"></span></figcaption>
+    </figure>
+    <button class="viewer-arrow viewer-next" id="viewerNext" aria-label="Próxima foto">›</button>
+    <div class="viewer-thumbs" id="viewerThumbs"></div>
+  </dialog>
+
+  <footer>
+    <span>Projeto local não oficial</span>
+    <span><a href="sitemap.xml" target="_blank">Sitemap XML local</a> · <a href="https://pixarcars.fandom.com/wiki/Category:Characters" target="_blank" rel="noreferrer">Abrir Pixar Cars Wiki ↗</a></span>
+  </footer>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

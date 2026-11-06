@@ -145,10 +145,17 @@ export default {
       }
       if (action === 'image') {
         const remote = new URL(url.searchParams.get('url') || '');
-        if (remote.hostname !== 'dpcarswiki.com' || !remote.pathname.startsWith('/images/')) throw new Error('Imagem inválida.');
-        const image = await fetch(remote.toString(), { headers: { referer: 'https://dpcarswiki.com/' } });
+        const isDpcarsImage = remote.hostname === 'dpcarswiki.com' && remote.pathname.startsWith('/images/');
+        const isFandomImage = remote.hostname === 'static.wikia.nocookie.net' && remote.pathname.startsWith('/worldofcarsdrivein/images/');
+        if (!isDpcarsImage && !isFandomImage) throw new Error('Imagem inválida.');
+        const cacheKey = new Request(url.toString());
+        const cached = await caches.default.match(cacheKey);
+        if (cached) return withCors(cached);
+        const image = await fetch(remote.toString(), { headers: { referer: isFandomImage ? 'https://pixarcars.fandom.com/' : 'https://dpcarswiki.com/' } });
         if (!image.ok) throw new Error(`Imagem respondeu ${image.status}`);
-        return response(image.body, { headers: { 'Content-Type': image.headers.get('content-type') || 'image/jpeg', 'Cache-Control': 'public, max-age=86400' } });
+        const cachedResponse = response(image.body, { headers: { 'Content-Type': image.headers.get('content-type') || 'image/jpeg', 'Cache-Control': 'public, max-age=2592000' } });
+        ctx.waitUntil(caches.default.put(cacheKey, cachedResponse.clone()));
+        return cachedResponse;
       }
       const files = (url.searchParams.get('files') || '').split('|').filter(Boolean).slice(0,50);
       const body = action === 'previews' && files.length ? { previews: await previews(files) } : action === 'characters' ? { characters: await characters() } : action === 'orthos' && url.searchParams.get('title') ? await orthos(url.searchParams.get('title')) : { service: 'Pixar Orthos API', endpoints: ['?action=media', '?action=previews&files=Example.png', '?action=characters', '?action=orthos&title=Doc%20Hudson'] };
